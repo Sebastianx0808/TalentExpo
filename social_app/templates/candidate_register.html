@@ -1,0 +1,189 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" ng-app="Candidate_App">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="icon" href="{% static 'images/Favicon.png' %}" type="image/x-icon">
+    <style>
+        .error { color: red; }
+        .form-container {
+            display: flex;
+            min-height: 100vh;
+            flex-wrap: wrap;
+        }
+        .welcome-section {
+            background: url('{% static "images/Reister.png" %}') no-repeat center center;
+            background-size: cover;
+
+            width: 80%;
+            max-width: 50%;
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .register-section {
+            width: 100%;
+            max-width: 50%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: white;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+        .register-section:hover {
+            transform: translateY(-5px);
+        }
+        @media (max-width: 768px) {
+            .welcome-section, .register-section {
+                max-width: 100%;
+            }
+        }
+        .form-input {
+            display: flex;
+            align-items: center;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s ease-in-out;
+        }
+        .form-input:focus-within {
+            border-color: #6366f1;
+        }
+        .form-input i {
+            margin-right: 0.5rem;
+            color: #a0aec0;
+        }
+        input, select, textarea {
+            flex: 1;
+            border: none;
+            outline: none;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+<body class="bg-gray-100 font-roboto">
+    <div class="form-container">
+        <div class="welcome-section text-center">
+            
+        </div>
+        <div class="register-section">
+            <h2 class="text-2xl font-bold mb-6 text-center text-indigo-600">Register</h2>
+            <form action="{% url 'register_candidate' %}" method="post" enctype="multipart/form-data" name="candidateForm" novalidate ng-submit="candidateForm.$valid && submitForm()">
+                {% csrf_token %}
+                <div class="form-input">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="name" ng-model="user.name" placeholder="Name" required class="w-full focus:outline-none">
+                    <span class="error" ng-show="candidateForm.name.$touched && candidateForm.name.$invalid">Name is required.</span>
+                </div>
+                <div class="form-input">
+                    <i class="fas fa-birthday-cake"></i>
+                    <input type="number" name="age" ng-model="user.age" placeholder="Age" required class="w-full focus:outline-none">
+                    <span class="error" ng-show="candidateForm.age.$touched && candidateForm.age.$invalid">Age is required.</span>
+                </div>
+                <div class="form-input">
+                    <i class="fas fa-phone"></i>
+                    <input type="text" name="contact_details" ng-model="user.contact_details" placeholder="Contact Details" required class="w-full focus:outline-none">
+                    <span class="error" ng-show="candidateForm.contact_details.$touched && candidateForm.contact_details.$invalid">Contact details are required.</span>
+                </div>
+                <div class="form-input">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <select name="location" ng-model="user.location" required class="w-full focus:outline-none">
+                        <option value="" disabled selected>Select Location 1</option>
+                        {% for place in places %}
+                        <option value="{{ place.city }}">{{ place.city }}</option>
+                        {% endfor %}
+                    </select>
+                    <span class="error" ng-show="candidateForm.location.$touched && candidateForm.location.$invalid">Location 1 is required.</span>
+                </div>
+                <div class="form-input">
+                    <i class="fas fa-cogs"></i>
+                    <textarea name="skills" ng-model="user.skills" placeholder="Skills" required class="w-full focus:outline-none"></textarea>
+                    <span class="error" ng-show="candidateForm.skills.$touched && candidateForm.skills.$invalid">Skills are required.</span>
+                </div>
+                <div class="form-input">
+                    <i class="fas fa-info-circle"></i>
+                    <textarea name="brief_description" ng-model="user.brief_description" placeholder="Brief Description" required class="w-full focus:outline-none"></textarea>
+                    <span class="error" ng-show="candidateForm.brief_description.$touched && candidateForm.brief_description.$invalid">Brief description is required.</span>
+                </div>
+                <div class="form-input">
+                    <i class="fas fa-image"></i>
+                    <input type="file" name="profile_pic" class="w-full focus:outline-none">
+                </div>
+                <div class="form-input">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" id="email" ng-model="user.email" ng-pattern="emailPattern" placeholder="Email" required class="w-full focus:outline-none">
+                    <span id="emailError" class="error"></span>
+                    <span class="error" ng-show="candidateForm.email.$touched && candidateForm.email.$error.required">Email is required.</span>
+                    <span class="error" ng-show="candidateForm.email.$touched && candidateForm.email.$error.pattern">Invalid email address.</span>
+                </div>
+                <div class="form-input">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" ng-model="user.password" ng-pattern="passwordPattern" placeholder="Password" required class="w-full focus:outline-none">
+                    <span class="error" ng-show="candidateForm.password.$touched && candidateForm.password.$error.required">Password is required.</span>
+                    <span class="error" ng-show="candidateForm.password.$touched && candidateForm.password.$error.pattern">Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.</span>
+                </div>
+                <div class="form-input">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="confirm_password" ng-model="user.confirm_password" placeholder="Confirm Password" required class="w-full focus:outline-none">
+                    <span class="error" ng-show="candidateForm.confirm_password.$touched && candidateForm.confirm_password.$invalid">Confirm Password is required.</span>
+                </div>
+                <div class="mb-4">
+                    <label class="flex items-center text-gray-700">
+                        <input type="checkbox" name="terms" ng-model="user.terms" required>
+                        <span class="ml-2">I accept the <a href="#" class="text-indigo-600">Terms of Use</a> & <a href="#" class="text-indigo-600">Privacy Policy</a></span>
+                    </label>
+                    <span class="error" ng-show="candidateForm.terms.$touched && candidateForm.terms.$invalid">You must accept the terms and conditions.</span>
+                </div>
+                <button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring focus:ring-indigo-300" ng-disabled="!validateForm(candidateForm)">Register Now</button>
+            </form>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('#email').on('blur', function(){
+                var email = $(this).val();
+                $.ajax({
+                    url: '{% url "check_email" %}',
+                    data: {
+                        'email': email
+                    },
+                    dataType: 'json',
+                    success: function(data){
+                        if(data.is_taken){
+                            $('#emailError').text('Email already exists');
+                            $('#submitBtn').attr('disabled', 'disabled');
+                        } else {
+                            $('#emailError').text('');
+                            $('#submitBtn').removeAttr('disabled');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        var app = angular.module('Candidate_App', []);
+        app.controller('RegistrationController', function($scope) {
+            $scope.user = {};
+            $scope.emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+            $scope.passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    
+            $scope.validateForm = function(form) {
+                return form.$valid;
+            };
+        });
+    </script>
+</body>
+</html>

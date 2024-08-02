@@ -1,0 +1,356 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" ng-app="app">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <link rel="icon" href="{% static 'images/Favicon.png' %}" type="image/x-icon">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <style>
+        body, html {
+            height: 100%;
+        }
+        .container-full {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .flex-grow {
+            flex: 1;
+        }
+        .post-card img, .post-card video, .post-card audio {
+            max-height: 500px;
+            width: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="bg-gray-100" >
+    <!-- Navbar -->
+    <nav class="bg-gray-800 p-4 text-white">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold">Candidate Dashboard</a>
+            <div>
+                <a href="#" class="px-4">Home</a>
+                <a href="#" class="px-4" id="profileLink">Profile</a>
+                <a href="#" class="px-4">Messages</a>
+                <a href="#" class="px-4">Settings</a>
+                <a href="{% url 'logout' %}" class="px-4">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar and Main Content Wrapper -->
+    <div class="container-full">
+        <div class="flex flex-grow">
+            <!-- Sidebar -->
+            <aside class="w-full md:w-64 bg-gray-800 text-white p-6">
+                <ul>
+                    <li class="mb-4">
+                        <a href="#" id="dashboardLink" class="block py-2 px-4 rounded hover:bg-gray-700">Dashboard</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700" id="showDirectors">Directors</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700">Messages</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="new_post/" class="block py-2 px-4 rounded hover:bg-gray-700">New Post</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700">Notifications</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700">Settings</a>
+                    </li>
+                </ul>
+            </aside>
+
+            <!-- Main Section -->
+            <main class="flex-1 p-6">
+                <!-- Search Bar -->
+                <div class="mb-6">
+                    <input type="text" id="searchQuery" class="bg-gray-900 text-white rounded-md border-2 border-gray-700 py-2 px-4 pr-12 focus:outline-none focus:border-gray-500" placeholder="Search...">
+                    <button id="searchBtn" class="absolute top-0 right-0 mt-3 mr-3">
+                        <svg class="h-4 w-4 fill-current text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 4 11c0 3.58 2.91 6.49 6.5 6.5a6.5 6.5 0 0 0 4.92-2.23l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Main Content -->
+                <div class="bg-white p-6 rounded-lg shadow-lg" ng-controller="PostController">
+                    <h1 class="text-2xl font-bold mb-4">Welcome, {{ logname }}!</h1>
+                    <div id="postsContainer" class="grid grid-cols-1 gap-6">
+                        <!-- Cards will be dynamically added here -->
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white p-4 text-center">
+            &copy; 2024 My Social. All rights reserved.
+        </footer>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            function loadInitialDashboard() {
+                $.ajax({
+                    url: '{% url "candidate_dashboard" %}',
+                    type: 'GET',
+                    success: function(data) {
+                        var postsContainer = $('#postsContainer');
+                        postsContainer.empty();  // Clear existing content
+
+                        data.posts.forEach(function(post) {
+                            var mediaUrl = `/media/${post.media}`;
+                            var postHtml = `<div class="post-card bg-white rounded-lg shadow-lg overflow-hidden w-full mb-6" ng-repeat='post in posts'>
+                                                <div class="px-6 py-4">
+                                                    <div class="font-bold text-xl mb-2">${new Date(post.created_at).toLocaleDateString()}</div>
+                                                    <div class="text-gray-700 mb-2">Posted by: ${post.name}</div>
+                                                    ${post.media ? 
+                                                        (post.media.endsWith('.mp4') ?
+                                                            `<video controls class="mb-4">
+                                                                <source src="${mediaUrl}" type="video/mp4">
+                                                                Your browser does not support the video tag.
+                                                            </video>` :
+                                                        (post.media.endsWith('.jpg') || post.media.endsWith('.jpeg') || post.media.endsWith('.png') || post.media.endsWith('.gif')) ?
+                                                            `<img src="${mediaUrl}" alt="Post Image" class="mb-4">` :
+                                                        (post.media.endsWith('.mp3') || post.media.endsWith('.wav')) ?
+                                                            `<audio controls class="mb-4">
+                                                                <source src="${mediaUrl}" type="audio/mpeg">
+                                                                Your browser does not support the audio tag.
+                                                            </audio>` : '') : ''}
+                                                    <p class="text-gray-700 text-base">${post.description}</p>
+                                                </div>
+                                            </div>`;
+                            postsContainer.append(postHtml);
+                        });
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        console.error('Error fetching posts:', errorThrown);
+                    }
+                });
+            }
+
+            // Load initial dashboard content
+            loadInitialDashboard();
+
+            // Event listener for "Dashboard" link
+            $('#dashboardLink').click(function(event) {
+                event.preventDefault();
+                loadInitialDashboard();
+            });
+
+            // Event listener for "Directors" link
+            $('#showDirectors').click(function(event) {
+                event.preventDefault();
+                console.log('Directors link clicked'); // Debugging log
+                
+                $.ajax({
+                    url: '{% url "get_directors" %}',
+                    type: 'GET',
+                    success: function(data) {
+                        console.log('Data fetched:', data); // Debugging log
+                        
+                        var mainContent = $('#postsContainer');
+                        mainContent.empty(); // Clear existing content
+
+                        var directorsHtml = '<h2 class="text-2xl font-bold mb-4">Directors</h2>';
+                        data.directors.forEach(function(director) {
+                            directorsHtml += `
+                                <div class="director-card bg-white p-6 rounded-lg shadow-lg mb-4 flex items-center">
+                                    <!-- Profile Picture -->
+                                    <div class="w-24 h-24 rounded-full overflow-hidden mr-6">
+                                        <img src="https://via.placeholder.com/400x300" alt="Profile Picture" class="w-full h-full object-cover">
+                                    </div>
+                                    <!-- Director Details -->
+                                    <div class="flex-1">
+                                        <h3 class="text-xl font-bold mb-4">${director.name}</h3>
+                                        <table class="table-auto w-full">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="border px-4 py-2 font-bold">Age:</td>
+                                                    <td class="border px-4 py-2">${director.age}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="border px-4 py-2 font-bold">Contact:</td>
+                                                    <td class="border px-4 py-2">${director.contact_details}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="border px-4 py-2 font-bold">Designation:</td>
+                                                    <td class="border px-4 py-2">${director.designation}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="border px-4 py-2 font-bold">Company:</td>
+                                                    <td class="border px-4 py-2">${director.company}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="border px-4 py-2 font-bold">Description:</td>
+                                                    <td class="border px-4 py-2">${director.brief_description}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="border px-4 py-2 font-bold">Status:</td>
+                                                    <td class="border px-4 py-2">${director.status ? '<span class="verified">Verified</span>' : '<span class="not-verified">Not Verified</span>'}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>`;
+                        });
+
+                        mainContent.append(directorsHtml);
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        console.error('Error fetching directors:', errorThrown);
+                    }
+                });
+            });
+        });
+        $(document).ready(function(){
+            function searchDirectors(){
+                var query = $('#searchQuery').val();
+
+                $.ajax({
+                    url: '{% url "search_directors" %}',
+                    type: 'GET',
+                    data: { query: query },
+                    success: function(data) {
+                        var mainContent = $('#postsContainer');
+                        mainContent.empty();
+                        if (data.directors.length === 0) {
+                            mainContent.html(`<p class="text-red-500">No Directors found</p>`);
+                        } else {
+                            data.directors.forEach(function(director) {
+                                var directorHtml = `<div class="director-card">
+                                    
+                                    <div class="director-info">
+                                        <h2 class="text-xl font-bold">${director.name}</h2>
+                                        <p><strong>Age:</strong> ${director.age}</p>
+                                        <p><strong>Contact:</strong> ${director.contact_details}</p>
+                                        <p><strong>Designation:</strong> ${director.designation}</p>
+                                        <p><strong>Company:</strong> ${director.company}</p>
+                                        <p><strong>Description:</strong> ${director.brief_description}</p>
+                                    </div>
+                                </div>`;
+                                mainContent.append(directorHtml);
+                            });
+                        }
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        console.error('Error Fetching data: ', errorThrown);
+                    }
+                });
+            }
+
+            $('#searchQuery').keypress(function(e) {
+                if (e.which == 13) {
+                    e.preventDefault(); // Prevent form submission
+                    searchDirectors();
+                }
+            });
+
+            // Search when search button is clicked
+            $('#searchBtn').click(function() {
+                searchDirectors();
+            });
+        });
+
+        $(document).ready(function() {
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    var csrftoken = getCookie('csrftoken');
+
+    function loadProfile() {
+        $.ajax({
+            url: '{% url "get_profile" %}',
+            type: 'GET',
+            success: function(data) {
+                console.log('Profile data received:', data);
+                console.log("Profile picture path: ", data.profile.profile_picture);
+                var profileHtml = `
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h2 class="text-2xl font-bold mb-4">Profile</h2>
+                        <div class="flex items-center mb-4">
+                            <div class="w-32 h-32 rounded-full overflow-hidden mr-6">
+                                <img src="${data.profile.profile_picture}" alt="Profile Picture" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <table class="table-auto">
+                                    <tbody>
+                                        <tr>
+                                            <td class="font-bold">Name:</td>
+                                            <td>${data.profile.name}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-bold">Email:</td>
+                                            <td>${data.profile.contact_details}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-bold">Age:</td>
+                                            <td>${data.profile.age}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-bold">Skills:</td>
+                                            <td>${data.profile.skills}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-bold">Description:</td>
+                                            <td>${data.profile.brief_description}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-bold">Location:</td>
+                                            <td>${data.profile.location}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>`;
+
+                $('#postsContainer').html(profileHtml);
+
+                
+
+                
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                console.error('Error fetching profile:', errorThrown);
+            }
+        });
+    }
+
+    $(document).on('click', '#profileLink', function(event) {
+        event.preventDefault();
+        console.log('Profile link clicked'); 
+        loadProfile();
+    });
+});
+    </script>
+</body>
+</html>

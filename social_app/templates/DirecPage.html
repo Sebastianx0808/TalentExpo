@@ -1,0 +1,553 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Director Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="icon" href="{% static 'images/Favicon.png' %}" type="image/x-icon">
+    <style>
+        body, html {
+            height: 100%;
+        }
+        .container-full {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .flex-grow {
+            flex: 1;
+        }
+        .candidate-card {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: #fff;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+        .profile-header{
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background: #fff;
+            border-bottom: 1px solid #e6e6e6;
+        }
+        .profile-header img{
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+        .profile-stats{
+            display: flex;
+            margin-top: 10px;
+        }
+        .profile-stats div{
+            margin-right: 20px;
+        }
+        .posts-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+
+        }
+        .post {
+            width: 30%;
+            margin-bottom: 20px;
+        }
+        .post img, .post video{
+            width: 100%;
+            border-radius: 10px;
+        }
+        
+        .candidate-info {
+            flex: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-gray-800 p-4 text-white">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold">Director Dashboard</a>
+            <div class="flex items-center">
+                <!-- Search Bar -->
+                <div class="relative mr-6">
+                    <input type="text" id="searchQuery" class="bg-gray-900 text-white rounded-md border-2 border-gray-700 py-2 px-4 pr-12 focus:outline-none focus:border-gray-500" placeholder="Search...">
+                    <button id="searchBtn" class="absolute top-0 right-0 mt-3 mr-3">
+                        <svg class="h-4 w-4 fill-current text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 4 11c0 3.58 2.91 6.49 6.5 6.5a6.5 6.5 0 0 0 4.92-2.23l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </button>
+                </div>
+                <!-- Filter Option -->
+                <div>
+                    <select name="location" id="locationFilter" class="bg-gray-900 text-white rounded-md border-2 border-gray-700 py-2 px-4 focus:outline-none focus:border-gray-500">
+                        <option value="" disabled selected>Filter by Location</option>
+                        {% for place in places %}
+                        <option value="{{ place.city}}">{{ place.city }}</option>
+                        {% endfor %}
+                        
+                        <!-- Add more location options if needed -->
+                    </select>
+                </div>
+            </div>
+            <div>
+                <a href="#" class="px-4">Home</a>
+                <a href="#" class="px-4" id="profileLink">Profile</a>
+                <a href="#" class="px-4">Messages</a>
+                <a href="#" class="px-4">Settings</a>
+                <a href="{% url 'logout' %}" class="px-4">Logout</a> <!-- Logout link -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar and Main Content Wrapper -->
+    <div class="container-full">
+        <div class="flex flex-grow">
+            <!-- Sidebar -->
+            <aside class="w-full md:w-64 bg-gray-800 text-white p-6">
+                <ul>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700" id="dashboardLink">Dashboard</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700" id="showCandidatesLink">Show Candidates</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700" id="showPostsLink">Show Posts</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700" id="showMyPostsLink">Show My Posts</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="director_post/" class="block py-2 px-4 rounded hover:bg-gray-700" id="addPostLink">Add a New Post</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700">Notifications</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700">Settings</a>
+                    </li>
+                </ul>
+            </aside>
+
+            <!-- Main Section -->
+            <main class="flex-1 p-6" id="mainContent">
+                <div id="welcomeMessage" class="bg-white p-6 rounded-lg shadow-lg">
+                    <h1 class="text-2xl font-bold mb-4">Welcome, {{ logname }}</h1>
+                </div>
+            </main>
+        </div>
+        <!-- Modal HTML -->
+        <div id="scheduleModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-8 rounded-lg shadow-lg max-w-lg w-full">
+                <h2 class="text-2xl mb-4">Schedule Audition</h2>
+               
+
+                <form id="scheduleForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="candidateId" name="candidateId">
+                    <div class="mb-4">
+                        <label for="date" class="block text-sm font-bold mb-2">Select Date:</label>
+                        <input type="date" id="date" name="date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="mb-4">
+                        <label for="time" class="block text-sm font-bold mb-2">Select Time:</label>
+                        <div class="flex items-center">
+                            <select id="hour" name="hour" class="mr-2 appearance-none bg-white border border-gray-400 text-gray-700 px-4 py-2 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
+                                <!-- Options for hours -->
+                                <option value="01">01</option>
+                                <option value="02">02</option>
+                                <option value="01">03</option>
+                                <option value="02">04</option>
+                                <option value="01">05</option>
+                                <option value="02">06</option>
+                                <option value="01">07</option>
+                                <option value="02">08</option>
+                                <option value="01">09</option>
+                                <option value="02">10</option>
+                                <option value="01">11</option>
+                                <option value="02">12</option>
+                                
+                                
+                            </select>
+                            <select id="period" name="period" class="appearance-none bg-white border border-gray-400 text-gray-700 px-4 py-2 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
+                                <!-- Options for AM/PM -->
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="message" class="block text-sm font-bold mb-2">Message:</label>
+                        <textarea id="message" name="message" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded-md mr-2" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 ease-in-out hover:bg-blue-700 transform hover:-translate-y-0.5">Send</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white p-4 text-center">
+            &copy; 2024 My Social. All rights reserved.
+        </footer>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+        function openModal(candidateId) {
+            document.getElementById('candidateId').value = candidateId;
+            document.getElementById('scheduleModal').classList.remove('hidden');
+        }
+
+        // Function to close the modal
+        function closeModal() {
+            document.getElementById('scheduleModal').classList.add('hidden');
+        }
+        $('.schedule-button').click(function() {
+            console.log($(this).data('candidate-id')); // Check the value in the console
+            openModal($(this).data('candidate-id'));
+        });
+        function closeModal() {
+            $('#scheduleModal').addClass('hidden');
+        }
+        $(document).ready(function() {
+            // Event listener for "Show Candidates" link
+            $('#showCandidatesLink').click(function(e) {
+                e.preventDefault(); // Prevent the default link behavior
+                $.ajax({
+                    url: '{% url "show_candidates" %}', // URL for the candidates data
+                    type: 'GET',
+                    success: function(data) {
+                        var mainContent = $('#mainContent');
+                        mainContent.empty(); // Clear existing content
+
+                        data.candidates.forEach(function(candidate) {
+                            var candidateHtml = `<div class="candidate-card flex p-4 bg-white shadow-md rounded-lg mb-4">
+                                <img src="/media/${candidate.profile_pic}" alt="Profile Picture" class="profile-pic w-20 h-20 rounded-full mr-4">
+                                <div class="candidate-info flex-grow">
+                                    <h2 class="text-xl font-bold">${candidate.name}</h2>
+                                    <p><strong>Age:</strong> ${candidate.age}</p>
+                                    <p><strong>Contact:</strong> ${candidate.contact_details}</p>
+                                    <p><strong>Skills:</strong> ${candidate.skills}</p>
+                                    <p><strong>Description:</strong> ${candidate.brief_description}</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <button class="schedule-button bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700" data-candidate-id="${candidate.id}">
+                                        Scedule Audition
+                                    </button>
+                            </div>`;
+                            mainContent.append(candidateHtml);
+                        });
+                        $('.schedule-button').click(function() {
+                            openModal($(this).data('candidate-id'));
+                        });
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        console.error('Error fetching candidates:', errorThrown);
+                    }
+                });
+            });
+        });
+        $(document).ready(function() {
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== ''){
+                    const cookies = document.cookie.split(';');
+                    for( let i=0; i < cookies.length; i++){
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = getCookie('csrftoken');
+
+            // Event listener for form submission
+            $('#scheduleForm').submit(function(e) {
+                e.preventDefault(); // Prevent the default form submission
+                
+                // Gather form data
+                var formData = {
+                    candidateId: $('#candidateId').val(),
+                    date: $('#date').val(),
+                    hour: $('#hour').val(),
+                    period: $('#period').val(),
+                    message: $('#message').val()
+                };
+                
+                // Send AJAX request to handle form submission
+                $.ajax({
+                    url: '{% url "send_schedule" %}', // Replace with your form submission URL
+                    type: 'POST', // Use POST method for form submission
+                    data: formData, // Send form data
+                    headers :{'X-CSRFToken' : csrftoken},
+                    success: function(response) {
+                        if (response.success) {
+                            console.log('Form submitted successfully!', response);
+                            alert('Form submitted successfully!'); // Display success message
+                            $('#scheduleModal').addClass('hidden'); // Hide the modal
+                        } else {
+                            console.error('Error submitting form:', response.error);
+                            alert('Error submitting form: ' + response.error); // Display error message
+                        }
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        // Handle error response
+                        console.error('Error submitting form:', errorThrown);
+                        // Optionally, show an error message to the user
+                    }
+                });
+            });
+        });
+        
+        
+
+        $(document).ready(function(){
+            $('#showPostsLink').click(function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '{% url "show_posts" %}',
+                    type: 'GET',
+                    success: function(data) {
+                        var mainContent = $('#mainContent');
+                        mainContent.empty();
+                        data.posts.forEach(function(post){
+                            if (post.role === "candidate") {
+
+                            
+                                var postHtml = `<div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                                                <div class="px-6 py-4">
+                                                    <div class="font-bold text-xl mb-2">${new Date(post.created_at).toLocaleDateString()}</div>
+                                                    <p class="text-gray-500 text-sm mt-2">Posted by: ${post.name}</p>
+                                                    ${post.media ? 
+                                                        (post.media.endsWith('.mp4') ?
+                                                            `<video controls class="w-full mb-4">
+                                                                <source src="/media/${post.media}" type="video/mp4">
+                                                                Your browser does not support the video tag.
+                                                            </video>` :
+                                                        (post.media.endsWith('.jpg') || post.media.endsWith('.jpeg') || post.media.endsWith('.png') || post.media.endsWith('.gif')) ?
+                                                            `<img src="/media/${post.media}" alt="Post Image" class="w-full mb-4">` :
+                                                        (post.media.endsWith('.mp3') || post.media.endsWith('.wav')) ?
+                                                            `<audio controls class="w-full mb-4">
+                                                                <source src="/media/${post.media}" type="audio/mpeg">
+                                                                Your browser does not support the audio tag.
+                                                            </audio>` : '') : ''}
+                                                    <p class="text-gray-700 text-base">${post.description}</p>
+                                                    
+                                                </div>
+                                            </div>`;
+                                mainContent.append(postHtml);
+                            }
+                            
+                        });
+                    },
+                    error: function(xhr, textStatus, errorThrown){
+                        console.error('Error fetching posts: ', errorThrown);
+                    }
+                });
+            });
+        });
+
+        $(document).ready(function(){
+            function searchCandidates(){
+                var query = $('#searchQuery').val();
+                var location = $('#locationFilter').val();
+
+                $.ajax({
+                    url: '{% url "search_candidates" %}',
+                    type: 'GET',
+                    data: { query: query, location: location},
+                    success: function(data) {
+                        var mainContent = $('#mainContent');
+                        mainContent.empty();
+                        if (data.candidates.length === 0) {
+                            mainContent.html(`<p class="text-red-500">No Candidates found</p>`);
+
+                        } else {
+                            data.candidates.forEach(function(candidate) {
+                                var candidateHtml = `<div class="candidate-card">
+                                    <img src="${candidate.profile_pic}" alt="Profile Picture" class="profile-pic">
+                                    <div class="candidate-info">
+                                        <h2 class="text-xl font-bold">${candidate.name}</h2>
+                                        <p><strong>Age:</strong> ${candidate.age}</p>
+                                        <p><strong>Contact:</strong> ${candidate.contact_details}</p>
+                                        <p><strong>Skills:</strong> ${candidate.skills}</p>
+                                        <p><strong>Description:</strong> ${candidate.brief_description}</p>
+                                    </div>
+                                </div>`;
+                                mainContent.append(candidateHtml);
+                            });
+                        }
+
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        console.error('Error Fetching data: ', errorThrown);
+                    }
+                });
+            }
+            $('#searchQuery').keypress(function(e) {
+                if (e.which == 13) {
+                    e.preventDefault(); // Prevent form submission
+                    searchCandidates();
+                }
+            });
+
+            // Search when search button is clicked
+            $('#searchBtn').click(function() {
+                searchCandidates();
+            });
+        });
+
+        $(document).ready(function(){
+            $('#showMyPostsLink').click(function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '{% url "show_posts" %}',
+                    type: 'GET',
+                    success: function(data) {
+                        var mainContent = $('#mainContent');
+                        mainContent.empty();
+                        data.posts.forEach(function(post){
+                            if (post.role === "director") {
+
+                            
+                                var postHtml = `<div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                                                <div class="px-6 py-4">
+                                                    <div class="font-bold text-xl mb-2">${new Date(post.created_at).toLocaleDateString()}</div>
+                                                    <p class="text-gray-500 text-sm mt-2">Posted by: ${post.name}</p>
+                                                    ${post.media ? 
+                                                        (post.media.endsWith('.mp4') ?
+                                                            `<video controls class="w-full mb-4">
+                                                                <source src="/media/${post.media}" type="video/mp4">
+                                                                Your browser does not support the video tag.
+                                                            </video>` :
+                                                        (post.media.endsWith('.jpg') || post.media.endsWith('.jpeg') || post.media.endsWith('.png') || post.media.endsWith('.gif')) ?
+                                                            `<img src="/media/${post.media}" alt="Post Image" class="w-full mb-4">` :
+                                                        (post.media.endsWith('.mp3') || post.media.endsWith('.wav')) ?
+                                                            `<audio controls class="w-full mb-4">
+                                                                <source src="/media/${post.media}" type="audio/mpeg">
+                                                                Your browser does not support the audio tag.
+                                                            </audio>` : '') : ''}
+                                                    <p class="text-gray-700 text-base">${post.description}</p>
+                                                    
+                                                </div>
+                                            </div>`;
+                                mainContent.append(postHtml);
+                            }
+                            
+                        });
+                    },
+                    error: function(xhr, textStatus, errorThrown){
+                        console.error('Error fetching posts: ', errorThrown);
+                    }
+                });
+            });
+        });
+
+        $(document).ready(function() {
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            var csrftoken = getCookie('csrftoken');
+
+            function loadProfile() {
+                $.ajax({
+                    url: '{% url "direc_profile" %}',
+                    type: 'GET',
+                    success: function(data) {
+                        console.log('Profile data received:', data);
+                        
+                        var profileHtml = `
+                            <div class="bg-white p-6 rounded-lg shadow-lg">
+                                <h2 class="text-2xl font-bold mb-4">Profile</h2>
+                                <div class="flex items-center mb-4">
+                                    
+                                    <div>
+                                        <table class="table-auto">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="font-bold">Name:</td>
+                                                    <td>${data.profile.name}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-bold">Email:</td>
+                                                    <td>${data.profile.contact_details}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-bold">Age:</td>
+                                                    <td>${data.profile.age}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-bold">Description:</td>
+                                                    <td>${data.profile.brief_description}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-bold">Location:</td>
+                                                    <td>${data.profile.company}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                            </div>`;
+
+                        $('#mainContent').html(profileHtml);
+
+                        
+
+                        
+                        
+
+                            
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        console.error('Error fetching profile:', errorThrown);
+                    }
+                });
+            }
+
+            $(document).on('click', '#profileLink', function(event) {
+                event.preventDefault();
+                console.log('Profile link clicked'); 
+                loadProfile();
+            })
+        });
+
+        
+
+        
+    </script>
+</body>
+</html>

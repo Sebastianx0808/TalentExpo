@@ -1,0 +1,407 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="icon" href="{% static 'images/Favicon.png' %}" type="image/x-icon">
+    <style>
+        .sidebar {
+            transition: transform 0.3s ease, width 0.3s ease;
+        }
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+        .collapsed {
+            width: 0;
+            margin-left: -250px;
+        }
+        .content {
+            transition: margin-left 0.3s;
+        }
+        .content.collapsed {
+            margin-left: 0;
+        }
+        .sidebar-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+        }
+        .verified{
+            color:green;
+            font-weight: bold;
+        }
+        .not-verified{
+            color: red;
+            font-weight: bold;
+        }
+        #quote {
+            max-width: 600px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        #quote img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="flex">
+        <div id="sidebar" class="sidebar bg-gray-800 text-white w-64 p-6 fixed h-full">
+            <h2 class="text-2xl font-bold mb-6 ml-12 ">Admin Dashboard</h2>
+            <nav>
+                <ul>
+                    <li class="mb-4">
+                        <a href="/" class="block py-2 px-4 rounded hover:bg-gray-700">Home</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700" onclick="showSection('view-candidates')">View Registered Candidates</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700" onclick="showSection('view-directors')">View and Verify Directors</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700" onclick="showSection('add-talent')">Add New Talents</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700" onclick="showSection('add-location')">Add New Location</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded hover:bg-gray-700" onclick="showSection('supreme-functions')">Extra Functions</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        
+        <div id="main-content" class="content flex-1 p-6 ml-64">
+            <button id="toggleSidebar" class="sidebar-button text-white bg-gray-800 p-2 rounded">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div id="quote" class="text-center">
+                <img src="{% static 'images/admin_dashboard.jpeg' %}" alt="Inspiring Quote" class="mx-auto mb-4">
+                <p class="text-xl font-semibold">"Talent wins games, but teamwork and intelligence win championships." - Michael Jordan</p>
+            </div>
+            <div id="view-candidates" class="hidden">
+                <h2 class="text-2xl font-bold mb-4">View Registered Candidates</h2>
+                <div class="overflow-x-auto">
+                    <table class="table-auto border-collapse border border-gray-800">
+                        <thead>
+                            <tr class="bg-gray-800 text-white">
+                                <th class="px-4 py-2">Name</th>
+                                <th class="px-4 py-2">Age</th>
+                                <th class="px-4 py-2">Contact Details</th>
+                                <th class="px-4 py-2">Skills</th>
+                                <th class="px-4 py-2">Brief Description</th>
+                               
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for candidate in candidates %}
+                            <tr>
+                                <td class="border px-4 py-2">{{ candidate.name }}</td>
+                                <td class="border px-4 py-2">{{ candidate.age }}</td>
+                                <td class="border px-4 py-2">{{ candidate.contact_details }}</td>
+                                <td class="border px-4 py-2">{{ candidate.skills }}</td>
+                                <td class="border px-4 py-2">{{ candidate.brief_description }}</td>
+                                
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="view-directors" class="hidden">
+                <h2 class="text-2xl font-bold mb-4">Directors</h2>
+                <div class="overflow-x-auto">
+                    <table class="table-auto border-collapse border border-gray-800">
+                        <thead>
+                            <tr class="bg-gray-800 text-white">
+                                <th class="border px-4 py-2">Select</th>
+                                <th class="px-4 py-2">Name</th>
+                                <th class="px-4 py-2">Age</th>
+                                <th class="px-4 py-2">Contact Details</th>
+                                <th class="px-4 py-2">Designation</th>
+                                <th class="px-4 py-2">Company</th>
+                                <th class="px-4 py-2">Status</th>
+                               
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for director in directors %}
+                            <tr>
+                                <td class="border px-4 py-2 text-center">
+                                    {% if not director.status %}
+                                        <input type="checkbox" name="director_ids" value="{{ director.id }}">
+                                    {% endif %}
+                                </td>
+                                <td class="border px-4 py-2">{{ director.name }}</td>
+                                <td class="border px-4 py-2">{{ director.age }}</td>
+                                <td class="border px-4 py-2">{{ director.contact_details }}</td>
+                                <td class="border px-4 py-2">{{ director.designation }}</td>
+                                <td class="border px-4 py-2">{{ director.company }}</td>
+                                <td class="border px-4 py-2">
+                                    {% if director.status %}
+                                        <span class="verified">verified</span>
+                                    {% else %}
+                                        <span class="not-verified">Not verified</span>
+                                    {% endif %}
+                                </td>
+                                
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <button type="submit" id="verifyDirectorsBtn" data-url="{% url 'view_candidates_and_directors' %}"
+                        class="bg-indigo-500 text-white font-bold mt-4 py-3 px-4 rounded shadow-md hover:bg-indigo-600 hover:shadow-lg transition duration-300">
+                        Verify Selected Directors
+                    </button>
+                                    
+                </div>
+            </div>
+            <div id="add-talent" class="hidden">
+                <h2 class="text-2xl font-bold mb-4">Add New Talents</h2>
+                <form action="#" method="post" id="talentForm" class="bg-white p-6 rounded-lg shadow-lg">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="block text-gray-700">Talent Name</label>
+                        <input type="text" name="talent_name" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-indigo-300">
+                    </div>
+                    <button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700">Add Talent</button>
+                </form>
+            </div>
+            <div id="add-location" class="hidden">
+                <h2 class="text-2xl font-bold mb-4">Add New Location</h2>
+                <form action="#" method="post" id="locationForm" class="bg-white p-6 rounded-lg shadow-lg">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="block text-gray-700">Country</label>
+                        <input type="text" name="country" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-indigo-300">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700">State</label>
+                        <input type="text" name="state" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-indigo-300">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700">City</label>
+                        <input type="text" name="city" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-indigo-300">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700">Pin Code</label>
+                        <input type="text" name="pin_code" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-indigo-300">
+                    </div>
+                    <button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700">Add Location</button>
+                </form>
+            </div>
+            <div id="supreme-functions" class="hidden">
+                <h2 class="text-2xl font-bold mb-4">Supreme Functions</h2>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+
+                    <h3 class="text-xl font-semibold mb-4">Delete Candidate</h3>
+                    <form action="#" id= "deleteUserFrom" method="post" class="mb-6">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="block text-gray-700" for="login_id">Candidate ID</label>
+                            <input type="text" name="login_id" id="login_id" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-indigo-300">
+                        </div>
+                        <button type="submit" id="delete_candidate" class="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">Delete Candidate</button>
+                    </form>
+
+                    <h3 class="text-xl font-semibold mb-4">Delete Director</h3>
+                    <form action="#" id="deleteDirectorForm" method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="block text-gray-700" for="email">Director Email</label>
+                            <input type="email" name="email" id="email" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-indigo-300">
+                        </div>
+                        <button type="button" id="deleteDirectorButton" class="bg-yellow-600 text-white py-2 px-4 rounded hover:bg-yellow-700">Disable User</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            if (sidebar.classList.contains('collapsed')) {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('collapsed');
+            } else {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('collapsed');
+            }
+        });
+
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.content > div');
+            sections.forEach(section => {
+                if (section.id !== sectionId) {
+                    section.classList.add('hidden');
+                } else {
+                    section.classList.remove('hidden');
+                }
+            });
+        }
+    </script>
+    <script>
+        $(document).ready(function(){
+            $('#verifyDirectorsBtn').click(function(){
+                event.preventDefault();
+                
+                var directorIds = [];
+                $('input[name="director_ids"]:checked').each(function(){
+                    directorIds.push($(this).val());
+                });
+               
+                if (directorIds.length > 0) {
+                    var url = $('#verifyDirectorsBtn').data('url');
+                    var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+                    $.ajax({
+                        type: 'POST',
+                        url: url,
+                        data: {
+                            'director_ids': directorIds,
+                            'csrfmiddlewaretoken': csrfToken
+                        },
+                        dataType: 'json',
+                        success: function(response){
+                            alert('Selected directors have been verified');
+                            $('input[name="director_ids"]:checked').each(function() {
+                                var row = $(this).closest('tr');
+                                row.find('.not-verified').removeClass('not-verified').addClass('verified').text('verified');
+                                $(this).prop('checked', false);
+                            });
+                         
+                        },
+                        error: function(xhr, status, error){
+                            console.error('Error verifying directors:', error);
+                            console.log('XHR:', xhr); 
+                            console.log('Status:', status);
+                            console.log('Response:', xhr.responseText);
+                        }
+                    });
+                } else {
+                    alert('Please select at least one director to verify');
+                }
+            });
+
+            $('#talentForm').submit(function(event) {
+                event.preventDefault();
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "add_talent" %}',
+                    data: {
+                        'talent_name': $('input[name="talent_name"]').val(),
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        alert('Talent added successfully!');
+                        $('#talentForm')[0].reset();
+                    },
+                    error: function(response) {
+                        alert('An error occurred. Please try again.');
+                    }
+                });
+            });
+
+            // AJAX for Location Form
+            $('#locationForm').submit(function(event) {
+                event.preventDefault();
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "add_location" %}',
+                    data: {
+                        'country': $('input[name="country"]').val(),
+                        'state': $('input[name="state"]').val(),
+                        'city': $('input[name="city"]').val(),
+                        'pin_code': $('input[name="pin_code"]').val(),
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        alert('Location added successfully!');
+                        $('#locationForm')[0].reset();
+                    },
+                    error: function(response) {
+                        alert('An error occurred. Please try again.');
+                    }
+                });
+            });
+
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('#delete_candidate').click(function(event) {
+                event.preventDefault(); // Prevent the default button action
+                
+                var login_id = $('#login_id').val();
+                if (!login_id) {
+                    alert('Please enter a Login ID');
+                    return;
+                }
+                $.ajax({
+                    url: '{% url "delete_candidate" %}',
+                    type: 'POST',
+                    data: {
+                        'login_id': login_id,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        alert('User deleted successfully!');
+                        $('#login_id').val('');
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        console.error('Error deleting user: ', errorThrown);
+                        alert(xhr.responseText);
+                        console.log(xhr.responseText);
+                        $('#login_id').val('');
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('#deleteDirectorButton').click(function(event) {
+                event.preventDefault();
+                
+                var email = $('#email').val();
+                if (!email) {
+                    alert('Please enter an email.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '{% url "delete_director" %}',
+                    type: 'POST',
+                    data: {
+                        'email': email,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        alert('Director deleted successfully!');
+                        $('#email').val(''); // Clear the input field
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        console.error('Error deleting director: ', errorThrown);
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+        });
+            
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Post</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="icon" href="{% static 'images/Favicon.png' %}" type="image/x-icon">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <nav class="bg-gray-800 p-4 text-white">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold">Candidate Dashboard</a>
+            <div>
+                <a href="#" class="px-4">Home</a>
+                <a href="#" class="px-4">Profile</a>
+                <a href="#" class="px-4">Messages</a>
+                <a href="#" class="px-4">Settings</a>
+                <a href="#" class="px-4">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+        <h1 class="text-2xl font-bold mb-4">Create a New Post</h1>
+        {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Error:</strong>
+            <span class="block sm:inline">{{ error }}</span>
+        </div>
+        {% endif %}
+        <form action="{% url 'new_post' %}" method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow-lg">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-gray-700">Name</label>
+                <input type="text" name="Name"  required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-indigo-300">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Brief Description</label>
+                <textarea name="description" rows="4" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-indigo-300"></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Talent Category</label>
+                <select name="talent_category" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-indigo-300">
+                    <option value="">Select Category</option>
+                    {% for talent in talents %}
+                        <option value="{{ talent.id }}">{{ talent.talent }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Upload Media</label>
+                <input type="file" name="media" accept="image/*,video/*,audio/*" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-indigo-300">
+            </div>
+            <div class="flex justify-between">
+                <button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700">Post</button>
+                <a href="{% url 'candidate_dashboard' %}" class="bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700">Cancel</a>
+            </div>
+        </form>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-4 text-center">
+        &copy; 2024 My Social. All rights reserved.
+    </footer>
+</body>
+</html>
